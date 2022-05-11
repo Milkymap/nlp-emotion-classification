@@ -122,6 +122,7 @@ def inference(path2models, model_name, path2network):
     logger.debug('load vectorizer (sentence transformer)')
     vectorizer = load_model(path2models, model_name)
     net = th.load(path2network)
+    net.eval()
     console = Console()
 
     keep_prediction = True 
@@ -132,13 +133,13 @@ def inference(path2models, model_name, path2network):
         else:
             fingerprint = vectorizer.encode(movie_review)
             fingerprint = th.tensor(fingerprint).float()
-            probability = net(fingerprint[None, ...]).squeeze(0).sigmoid().item()  # postive| negative 
-            
-            logger.debug(movie_review)
-            logger.debug(f'probability : {probability:07.3f}')
-            emotion = ':grinning_face:' if probability > 0.6 else ':angry_face:' if probability < 0.4 else ':neutral_face:'
-            console.print(f'predicted emotion : {emotion}')        
-
-
+            with th.no_grad():
+                probability = net(fingerprint[None, ...]).squeeze(0).sigmoid().item()  # postive| negative 
+                logger.debug(movie_review)
+                logger.debug(f'probability : {probability:07.3f}')
+                emotion = ':grinning_face:' if probability > 0.6 else ':angry_face:' if probability < 0.4 else ':neutral_face:'
+                console.print(f'predicted emotion : {emotion}')        
+    # end while loop ...!
+    
 if __name__ == '__main__':
     router_cmd(obj={})
