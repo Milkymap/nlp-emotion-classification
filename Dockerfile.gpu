@@ -1,0 +1,35 @@
+# base image derivation 
+FROM nvcr.io/nvidia/pytorch:21.08-py3
+
+# timezone handler 
+ARG DEBIAN_FRONTEND=noninteractive 
+ENV TZ=Europe/Paris 
+
+# initial system requirements 
+RUN apt-get update --fix-missing && \
+    apt-get install --yes --no-install-recommends \
+        tzdata apt-utils dialog \
+        gcc git curl pkg-config build-essential 
+
+# define new user 
+RUN useradd --gid root --create_home solver 
+WORKDIR /home/solver 
+
+# definie virutal env 
+ENV VIRTUAL_ENV=/opt/venv
+RUN chmod -R g+rwx /home/solver && python -m venv $VIRTUAL_ENV --system-site-packages
+ENV PATH="$VIRTUAL_ENV/bin:$PATH" 
+
+# install python requirements 
+RUN pip install --upgrade pip && pip install loguru click configparser sentence_transformers pyzmq rich 
+
+# define env variables 
+ENV PATH2MODELS="models/"
+ENV PATH2SOURCE_DATA="source_data"
+
+# pull source code 
+COPY . ./
+
+# entrypoint 
+ENTRYPOINT ["python", "main.py"]
+CMD ["--debug"]

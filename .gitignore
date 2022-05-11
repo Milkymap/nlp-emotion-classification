@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# local project
+model_store/
+source_data/
+features.pkl
